@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+$draw_width: 600px;
+$height: 600px;
+$chat_width: 300px;
+$input_height: 50px;
+$panel_height: 100px;
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+}
+.main_container {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-areas: "A A B";
+  justify-content: center;
+  align-content: center;
+  column-gap: 20px;
+
+  .draw_container {
+    width: $draw_width;
+    height: $height;
+    border: 1px solid black;
+
+    canvas {
+      width: 100%;
+      border: 1px solid black;
+      height: calc(#{$height} - #{$panel_height});
+    }
+  }
+  .chat_container {
+    height: $height;
+    width: $chat_width;
+    border: 1px solid black;
+    font-family: Inter, sans-serif;
+    position: relative;
+    .all_messages_container {
+      height: calc(100% - #{$input_height} - 10px);
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .input_container {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      height: $input_height;
+      input {
+        box-sizing: border-box;
+        width: 100%;
+        border: none;
+        border-top: 1px solid black;
+        padding: 5px;
+        margin: 0;
+        font-size: 1.5rem;
+      }
+    }
+    .message_container {
+      display: flex;
+      margin-top: 15px;
+      .mark_container {
+        display: flex;
+        margin-left: 5px;
+        div {
+          margin-left: 7px;
+        }
+        img {
+          pointer-events: none;
+        }
+      }
+      .name_container {
+        margin-left: 15px;
+        font-weight: 600;
+      }
+      .text_container {
+        margin-left: 10px;
+      }
+    }
+  }
+
+}
