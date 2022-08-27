@@ -4,6 +4,10 @@ $height: 600px;
 $chat_width: 300px;
 $input_height: 50px;
 $panel_height: 100px;
+
+.hide {
+  display: none;
+}
 body {
   margin: 0;
   padding: 0;
@@ -77,6 +81,8 @@ body {
       }
       .text_container {
         margin-left: 10px;
+        word-break: break-all;
+
       }
     }
   }

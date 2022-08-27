@@ -17,28 +17,20 @@
 				<input type="color" id="inputColor">
 				<label for="inputWidth">Выберите толщину кисти</label>
 				<input type="range" id="inputWidth" value="10" min="4">
+				<img src="./src/images/eraser.png" alt="Стереть все" id="eraser">
 			</div>
 		</div>
 		<div class="chat_container">
 			<div class="input_container">
-				<input type="text" placeholder="Введите сообщение">
+				<input type="text" placeholder="Введите сообщение" id="inputMessage">
 			</div>
 			<div class="all_messages_container">
-				<div class="message_container">
-					<div class="mark_container">
-						<div class="star_container" data-name="good_mark" data-active="false">
-							<img src="./src/images/star.png" alt="star">
-						</div>
-						<div class="trash_container" data-name="bad_mark" data-active="false">
-							<img src="./src/images/trash.png" alt="trash">
-						</div>
-					</div>
-					<div class="name_container">Егорка</div>
-					<div class="text_container">Севастополь</div>
-				</div>
 			</div>
 		</div>
 	</div>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="src/models/EventListeners.js"></script>
+	<script src="src/models/Game.js"></script>
 	<script src="src/main.js"></script>
 </body>
 </html>
