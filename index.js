@@ -6,7 +6,7 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
 app.use(express.static(path.resolve(__dirname, 'client')));
-const PORT = process.env.port || 80
+const PORT = process.env.PORT || 80
 
 app.get("/", (req, res)=> {
     res.sendFile(path.resolve(__dirname, 'client', 'index.html'));
