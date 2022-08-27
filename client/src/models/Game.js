@@ -6,7 +6,6 @@ class Game {
         this.getPlayerStatus();
         this.name = "Гость" + parseInt(Math.random() * 1250)
 
-
         this.socket = io();
         this.socket.on('new-message', (sender, message, messageId) => {
             this.addMessage(sender, message, messageId)
@@ -25,6 +24,9 @@ class Game {
         })
         this.socket.on("clear", () => {
             this.clear();
+        })
+        this.socket.on("full-clear", () => {
+            this.fullClear();
         })
         this.socket.on("player-drawing", (x, y, color, width) => {
             this.draw(x, y, color, width);
@@ -195,6 +197,10 @@ class Game {
     clear() {
         this.ctx.beginPath();
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    fullClear() {
+        this.clear();
         this.messagesElement.innerHTML = "";
     }
 

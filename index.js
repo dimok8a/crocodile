@@ -51,7 +51,7 @@ io.on('connection', (socket) => {
                 changeCurrentWord();
                 users[randomNum].emit("draw", currentWord);
             }
-            io.sockets.emit("clear");
+            io.sockets.emit("full-clear");
         }
         console.log('user disconnected');
     });
@@ -69,7 +69,7 @@ io.on('connection', (socket) => {
                 io.sockets.emit("dont-draw");
                 changeCurrentWord();
                 setTimeout ( () => {
-                    io.sockets.emit("clear");
+                    io.sockets.emit("full-clear");
                     socket.emit("draw", currentWord)
                 }, 3000)
                 break;
@@ -79,6 +79,7 @@ io.on('connection', (socket) => {
     socket.on('clear', () => {
         socket.broadcast.emit("clear");
     })
+
     socket.on('player-drawing', (x, y, color, width) => {
         socket.broadcast.emit("player-drawing", x, y, color, width);
     })
