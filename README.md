@@ -1,4 +1,4 @@
-# crocodile
+# Crocodile
 ### Simple project with node js and socket io
 
 # Start
