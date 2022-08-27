@@ -1,1 +1,1 @@
-const game = new Game();
+new Game();
