@@ -14,10 +14,13 @@ body {
   width: 100%;
   height: 100%;
   display: grid;
-  grid-template-areas: "A A B";
+  grid-template-areas: "A A A" "B B C";
   justify-content: center;
   align-content: center;
   column-gap: 20px;
+}
+.main_container .word_container {
+  grid-area: A;
 }
 .main_container .draw_container {
   width: 600px;

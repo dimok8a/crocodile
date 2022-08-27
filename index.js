@@ -18,42 +18,64 @@ let drawerId = null;
 
 let users = [];
 
+const words = ["декабрь", "театр", "темнота", "собака", "сигарета", "круг", "ракета", "нога", "король", "зуб"]
+
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
+let currentWord = "";
 
+function changeCurrentWord() {
+    const newWord = words[getRandomInt(words.length)];
+    if (newWord !== currentWord)
+        currentWord = newWord;
+    else
+        changeCurrentWord();
+}
 io.on('connection', (socket) => {
     console.log('a user connected');
     users.push(socket);
     if (io.engine.clientsCount === 1) {
-        socket.emit("draw");
+        changeCurrentWord();
+        socket.emit("draw", currentWord);
         gameStarted = true;
         drawerId = socket.id;
     }
     socket.on('disconnect', () => {
         users = users.filter(user => user !== socket);
         if (drawerId === socket.id) {
-            console.log('yps')
             drawerId = null;
-            console.log(users.length)
             if (users.length) {
                 const randomNum = getRandomInt(users.length);
                 drawerId = users[randomNum].id;
-                users[randomNum].emit("draw");
-
+                changeCurrentWord();
+                users[randomNum].emit("draw", currentWord);
             }
             io.sockets.emit("clear");
-
         }
         console.log('user disconnected');
     });
     if (socket.id !== drawerId)
         socket.emit("dont-draw");
+
     socket.on('send-message', (sender, message) => {
         io.sockets.emit("new-message", sender, message, messageId);
         messageId+=1;
+        const arrMessage = message.split(" ");
+        for (let i = 0; i < arrMessage.length; i++) {
+            if (arrMessage[i].toUpperCase() === currentWord.toUpperCase()) {
+                io.sockets.emit("new-message", "Игра", `${sender} угадал слово! Правильный ответ: ${currentWord}`)
+                drawerId = socket.id;
+                io.sockets.emit("dont-draw");
+                changeCurrentWord();
+                setTimeout ( () => {
+                    io.sockets.emit("clear");
+                    socket.emit("draw", currentWord)
+                }, 3000)
+                break;
+            }
+        }
     });
-
     socket.on('clear', () => {
         socket.broadcast.emit("clear");
     })

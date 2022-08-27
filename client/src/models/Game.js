@@ -18,9 +18,10 @@ class Game {
             this.playerStatus = 0;
             this.getPlayerSetup()
         })
-        this.socket.on("draw", () => {
+        this.socket.on("draw", (word) => {
             this.playerStatus = 1;
-            this.getPlayerSetup()
+            this.word = word;
+            this.getPlayerSetup();
         })
         this.socket.on("clear", () => {
             this.clear();
@@ -50,7 +51,10 @@ class Game {
         this.eraser = document.querySelector('#eraser');
         this.inputWidthElement = document.querySelector('#inputWidth');
         this.inputColorElement = document.querySelector('#inputColor');
+        document.querySelector('.word_container').innerHTML = "";
         if (this.playerStatus === 1) {
+            if (this.word)
+                document.querySelector('.word_container').innerHTML = `Текущее слово: ${this.word}`
             this.mouseDown = false;
             this.startDrawerListeners();
             document.querySelector('.canvas_panel_container').classList.remove('hide');
@@ -191,6 +195,7 @@ class Game {
     clear() {
         this.ctx.beginPath();
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.messagesElement.innerHTML = "";
     }
 
     eraserListener() {
