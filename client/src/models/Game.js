@@ -54,11 +54,13 @@ class Game {
             })
         })
         this.getReplay = this.getReplay.bind(this);
-        this.socket.on("get-replay", this.getReplay)
+        // this.socket.on("get-replay", (moves) => this.getReplay(moves))
     }
 
     getReplay(moves) {
         this.clear();
+        const time = 3000/moves.length;
+        console.log(moves.length, time);
         const interval = setInterval(()=> {
             if (moves.length === 0) {
                 clearInterval(interval);
@@ -72,7 +74,7 @@ class Game {
                 this.drawArc(move.x, move.y, move.color, move.width)
                 this.ctx.beginPath();
             }
-        }, 10)
+        }, time)
     }
 
     canvasSetup() {

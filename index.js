@@ -79,13 +79,13 @@ io.on('connection', (socket) => {
                 drawer = socket;
                 io.sockets.emit("dont-draw");
                 changeCurrentWord();
-                if (moves)
+                if (moves.length)
                     io.sockets.emit("get-replay", moves);
                 setTimeout ( () => {
                     io.sockets.emit("full-clear");
                     socket.emit("draw", currentWord);
                     socket.broadcast.emit("new-user-draw", sender);
-                }, moves.length*10 + 3000)
+                }, 3000)
                 moves = [];
                 break;
             }
