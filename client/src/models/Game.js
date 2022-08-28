@@ -139,7 +139,8 @@ class Game {
         }
         this.messagesElement.appendChild(newMessageElement);
         this.messagesElement.scrollTop = this.messagesElement.scrollHeight;
-        this.inputMessageElement.value = "";
+        if (sender === this.name)
+            this.inputMessageElement.value = "";
     }
 
     markListener(e) {
