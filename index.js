@@ -61,8 +61,8 @@ io.on('connection', (socket) => {
                 const randomNum = getRandomInt(users.length);
                 drawer = users[randomNum];
                 changeCurrentWord();
-                users[randomNum].emit("draw", currentWord);
                 drawer.broadcast.emit("new-user-draw", users[randomNum].handshake.auth.name);
+                users[randomNum].emit("draw", currentWord);
             }
             moves = [];
             io.sockets.emit("full-clear");
