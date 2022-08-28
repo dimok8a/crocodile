@@ -1,12 +1,14 @@
 class Game {
-    constructor() {
+    constructor(name = "Гость" + parseInt(Math.random() * 1250)) {
         this.canvasSetup();
         this.messagesElement = document.querySelector('.all_messages_container');
         this.inputMessageElement = document.querySelector('#inputMessage');
         this.getPlayerStatus();
-        this.name = "Гость" + parseInt(Math.random() * 1250)
+        this.name = name;
 
-        this.socket = io();
+        this.socket = io(null, { autoConnect: false });
+        this.socket.auth = { name }
+        this.socket.connect();
         this.socket.on('new-message', (sender, message, messageId) => {
             this.addMessage(sender, message, messageId)
         });
@@ -15,6 +17,7 @@ class Game {
         })
         this.socket.on("dont-draw", () => {
             this.playerStatus = 0;
+            this.word = null;
             this.getPlayerSetup()
         })
         this.socket.on("draw", (word) => {
@@ -31,9 +34,45 @@ class Game {
         this.socket.on("player-drawing", (x, y, color, width) => {
             this.draw(x, y, color, width);
         })
-        this.socket.on("mouseDown", () => {
+        this.socket.on("mouseDown", (x, y, color, width) => {
+            this.drawArc(x, y, color, width);
             this.ctx.beginPath();
         })
+        this.socket.on("new-user-draw", (userName) => {
+            this.word = userName;
+            this.getPlayerSetup();
+        })
+        this.socket.on("get-picture", (moves) => {
+            moves.forEach(move => {
+                if (move.type === "draw") {
+                    this.draw(move.x, move.y, move.color, move.width)
+                }
+                if (move.type === "mouseDown") {
+                    this.drawArc(move.x, move.y, move.color, move.width)
+                    this.ctx.beginPath();
+                }
+            })
+        })
+        this.getReplay = this.getReplay.bind(this);
+        this.socket.on("get-replay", this.getReplay)
+    }
+
+    getReplay(moves) {
+        this.clear();
+        const interval = setInterval(()=> {
+            if (moves.length === 0) {
+                clearInterval(interval);
+                return;
+            }
+            const move = moves.shift();
+            if (move.type === "draw") {
+                this.draw(move.x, move.y, move.color, move.width)
+            }
+            if (move.type === "mouseDown") {
+                this.drawArc(move.x, move.y, move.color, move.width)
+                this.ctx.beginPath();
+            }
+        }, 10)
     }
 
     canvasSetup() {
@@ -51,10 +90,13 @@ class Game {
 
     getPlayerSetup() {
         this.eraser = document.querySelector('#eraser');
+        this.bin = document.querySelector("#bin");
         this.inputWidthElement = document.querySelector('#inputWidth');
         this.inputColorElement = document.querySelector('#inputColor');
+        this.cursor = document.querySelector('.cursor');
         document.querySelector('.word_container').innerHTML = "";
         if (this.playerStatus === 1) {
+            this.cursor.classList.remove('hide')
             if (this.word)
                 document.querySelector('.word_container').innerHTML = `Текущее слово: ${this.word}`
             this.mouseDown = false;
@@ -63,27 +105,15 @@ class Game {
             this.inputMessageElement.disabled = true;
         } else {
             document.querySelector('.canvas_panel_container').classList.add('hide');
+            this.cursor.classList.add('hide');
             this.removeDrawerListeners();
             this.inputMessageElement.disabled = false;
+            if (this.word) {
+                document.querySelector('.word_container').innerHTML = `Сейчас рисует: ${this.word}`
+            }
         }
     }
 
-    changePlayerStatus() {
-        if (this.playerStatus === 1)
-            this.playerStatus = 0;
-        else this.playerStatus = 1;
-        if (this.playerStatus === 1) {
-            this.eraser = document.querySelector('#eraser');
-            this.inputWidthElement = document.querySelector('#inputWidth');
-            this.inputColorElement = document.querySelector('#inputColor');
-            this.mouseDown = false;
-            document.querySelector('.canvas_panel_container').classList.remove('hide');
-            this.startDrawerListeners();
-        } else {
-            document.querySelector('.canvas_panel_container').classList.add('hide');
-            this.removeDrawerListeners();
-        }
-    }
 
     addMessage(sender, message, messageId) {
         const newMessageElement = document.createElement('div');
@@ -157,10 +187,24 @@ class Game {
         }
     }
 
-    mouseDownListener() {
-        this.mouseDown = true
+    drawArc(x, y, color, width) {
         this.ctx.beginPath();
-        this.socket.emit("mouseDown");
+        this.ctx.fillStyle = color;
+        this.ctx.arc(x, y, width/2, 0, 2 * Math.PI);
+        this.ctx.fill();
+    }
+
+    mouseDownListener(e) {
+        this.mouseDown = true;
+        const targetCoords = this.canvas.getBoundingClientRect();
+        const x = e.clientX - targetCoords.left;
+        const y = e.clientY - targetCoords.top;
+        const color = this.inputColorElement.value;
+        const width = this.inputWidthElement.value;
+        this.drawArc(x, y, color, width)
+
+        this.ctx.beginPath();
+        this.socket.emit("mouseDown", x, y, color, width);
     }
 
     mouseUpListener() {
@@ -168,14 +212,18 @@ class Game {
     }
 
     mouseMoveListener(e) {
+        const width = this.inputWidthElement.value;
+        const targetCoords = this.canvas.getBoundingClientRect();
+        const x = e.clientX - targetCoords.left;
+        const y = e.clientY - targetCoords.top;
+        this.cursor.style.left = x - width/2 + "px";
+        this.cursor.style.top = y - width/2 + "px";
+        this.cursor.style.width = width + "px";
+        this.cursor.style.height = width + "px";
         if (this.mouseDown) {
             const color = this.inputColorElement.value;
-            const width = this.inputWidthElement.value;
-            const targetCoords = this.canvas.getBoundingClientRect();
             this.ctx.strokeStyle = color;
             this.ctx.fillStyle = color;
-            const x = e.clientX - targetCoords.left;
-            const y = e.clientY - targetCoords.top;
             this.draw(x, y, color, width);
             this.socket.emit("player-drawing", x, y, color, width)
         }
@@ -183,13 +231,10 @@ class Game {
 
     draw(x, y, color, width) {
         this.ctx.strokeStyle = color;
-        this.ctx.fillStyle = color;
         this.ctx.lineWidth = width;
         this.ctx.lineTo(x, y);
         this.ctx.stroke();
-        this.ctx.beginPath();
-        this.ctx.arc(x, y, width/2, 0, 2 * Math.PI);
-        this.ctx.fill();
+        this.drawArc(x, y, color, width)
         this.ctx.beginPath();
         this.ctx.moveTo(x, y);
     }
@@ -204,24 +249,35 @@ class Game {
         this.messagesElement.innerHTML = "";
     }
 
-    eraserListener() {
+    binListener() {
         this.ctx.beginPath();
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.socket.emit("clear");
     }
 
+    eraserListener() {
+        this.inputColorElement.value = "#FFFFFF";
+    }
+
     mouseWheelListener(e) {
         if (e.deltaY < 0) {
-            this.inputWidthElement.value = parseInt(this.inputWidthElement.value) + 2
+            this.inputWidthElement.value = parseInt(this.inputWidthElement.value) + 4
         }
         if (e.deltaY > 0)
-            this.inputWidthElement.value = parseInt(this.inputWidthElement.value) - 2
+            this.inputWidthElement.value = parseInt(this.inputWidthElement.value) - 4
+        this.changeWidthListener();
     }
 
     sendMessageEventListener(e) {
         if (e.keyCode === 13 && this.inputMessageElement.value !== "") {
             this.socket.emit('send-message', this.name, this.inputMessageElement.value);
         }
+    }
+
+    changeWidthListener() {
+        const width = this.inputWidthElement.value;
+        this.cursor.style.width = width + "px";
+        this.cursor.style.height = width + "px";
     }
 
     startDrawerListeners() {
@@ -231,20 +287,26 @@ class Game {
         this.mouseMoveListener = this.mouseMoveListener.bind(this);
         this.markListener = this.markListener.bind(this);
         this.eraserListener = this.eraserListener.bind(this);
+        this.binListener = this.binListener.bind(this);
+        this.changeWidthListener = this.changeWidthListener.bind(this);
         document.addEventListener("mouseup", this.mouseUpListener);
-        document.addEventListener("mousedown", this.mouseDownListener);
+        this.canvas.addEventListener("mousedown", this.mouseDownListener);
         document.addEventListener("wheel", this.mouseWheelListener);
         this.canvas.addEventListener("mousemove", this.mouseMoveListener);
         this.messagesElement.addEventListener("click", this.markListener);
         this.eraser.addEventListener("click", this.eraserListener);
+        this.bin.addEventListener("click", this.binListener);
+        this.inputWidthElement.addEventListener("input", this.changeWidthListener);
     }
 
     removeDrawerListeners() {
         document.removeEventListener("mouseup", this.mouseUpListener);
-        document.removeEventListener("mousedown", this.mouseDownListener);
+        this.canvas.removeEventListener("mousedown", this.mouseDownListener);
         document.removeEventListener("wheel", this.mouseWheelListener);
         this.canvas.removeEventListener("mousemove", this.mouseMoveListener);
         this.messagesElement.removeEventListener("click", this.markListener);
         this.eraser.removeEventListener("click", this.eraserListener);
+        this.bin.removeEventListener("click", this.binListener);
+        this.inputWidthElement.removeEventListener("change", this.changeWidthListener);
     }
 }

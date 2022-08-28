@@ -10,17 +10,30 @@
 	<title>Крокодил</title>
 </head>
 <body>
-	<div class="main_container">
+	<div class="user_name_container">
+		<div class="input_name_container">
+			<label for="inputName">Пожалуйста, введите свое имя</label>
+			<input type="text" id="inputName">
+		</div>
+	</div>
+	<div class="main_container hide">
 		<div class="word_container">
 		</div>
 		<div class="draw_container">
-			<canvas id="canvas"></canvas>
+			<div class="cursor hide"></div>
+			<canvas id="canvas">
+			</canvas>
 			<div class="canvas_panel_container">
-				<label for="inputColor">Выберите цвет</label>
-				<input type="color" id="inputColor">
-				<label for="inputWidth">Выберите толщину кисти</label>
-				<input type="range" id="inputWidth" value="10" min="4">
+				<div class="panel_input_container">
+					<label for="inputColor">Выберите цвет</label>
+					<input type="color" id="inputColor">
+				</div>
+				<div class="panel_input_container">
+					<label for="inputWidth">Выберите толщину кисти</label>
+					<input type="range" id="inputWidth" value="10" min="4">
+				</div>
 				<img src="./src/images/eraser.png" alt="Стереть все" id="eraser">
+				<img src="./src/images/bin.png" alt="Стереть все" id="bin">
 			</div>
 		</div>
 		<div class="chat_container">
