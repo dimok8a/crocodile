@@ -89,6 +89,7 @@ function playerMessage(namePlayer, message) {
 }
 let newMessage = null;
 changeCurrentWord();
+
 io.on('connection', (socket) => {
     console.log('a user connected');
     users.push(socket);
@@ -129,8 +130,10 @@ io.on('connection', (socket) => {
         newMessage = playerLeaveMessage(socket.handshake.auth.name);
         io.sockets.emit("new-message", newMessage);
         io.sockets.emit("change-online", io.engine.clientsCount);
-        if (io.engine.clientsCount === 0)
+        if (io.engine.clientsCount === 0) {
             chat = [];
+            changeCurrentWord();
+        }
         console.log('user disconnected');
     });
     socket.on('send-message', (sender, message) => {
