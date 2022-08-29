@@ -9,8 +9,8 @@ class Game {
         this.socket = io(null, { autoConnect: false });
         this.socket.auth = { name }
         this.socket.connect();
-        this.socket.on('new-message', (sender, message, messageId) => {
-            this.addMessage(sender, message, messageId)
+        this.socket.on('new-message', ({sender, message, messageId, canMark}) => {
+            this.addMessage(sender, message, messageId, canMark)
         });
         this.socket.on('markMessage', (messageId, mark, active) => {
             this.markMessage(messageId, mark, active);
@@ -58,6 +58,26 @@ class Game {
         })
         this.getReplay = this.getReplay.bind(this);
         this.socket.on("get-replay", (moves) => this.getReplay(moves))
+        this.socket.on("get-chat", chat => {
+            for (let i = 0; i<chat.length; i++) {
+                this.addMessage(chat[i].sender, chat[i].message, chat[i].messageId, chat[i].mark);
+                if (chat[i].markStatus) {
+                    this.markMessage(chat[i].messageId, chat[i].markStatus.mark, chat[i].markStatus.active);
+                }
+            }
+        })
+    }
+
+    printMove(move) {
+        if (!move)
+            return;
+        if (move.type === "draw") {
+            this.draw(move.x, move.y, move.color, move.width)
+        }
+        if (move.type === "mouseDown") {
+            this.drawArc(move.x, move.y, move.color, move.width)
+            this.ctx.beginPath();
+        }
     }
 
     getReplay(moves) {
@@ -67,14 +87,11 @@ class Game {
                 clearInterval(interval);
                 return;
             }
-            const move = moves.shift();
-            if (move.type === "draw") {
-                this.draw(move.x, move.y, move.color, move.width)
-            }
-            if (move.type === "mouseDown") {
-                this.drawArc(move.x, move.y, move.color, move.width)
-                this.ctx.beginPath();
-            }
+            this.printMove(moves.shift());
+            this.printMove(moves.shift());
+            this.printMove(moves.shift());
+            this.printMove(moves.shift());
+            this.printMove(moves.shift());
         }, 5)
     }
 
@@ -118,7 +135,7 @@ class Game {
     }
 
 
-    addMessage(sender, message, messageId) {
+    addMessage(sender, message, messageId, canMark) {
         const newMessageElement = document.createElement('div');
         newMessageElement.classList.add('message_container');
         newMessageElement.dataset.messageId = messageId;
@@ -134,7 +151,7 @@ class Game {
 					<div class="name_container">${sender}</div>
 					<div class="text_container">${message}</div>
 					`
-        if (!this.playerStatus) {
+        if (!this.playerStatus || !canMark) {
             newMessageElement.querySelector('.star_container').classList.add('hide')
             newMessageElement.querySelector('.trash_container').classList.add('hide')
         }
