@@ -37,6 +37,8 @@ function changeCurrentWord() {
 io.on('connection', (socket) => {
     console.log('a user connected');
     users.push(socket);
+    io.sockets.emit("new-message", "Игра", `К нам присоединился ${socket.handshake.auth.name}`);
+    io.sockets.emit("change-online", io.engine.clientsCount);
     if (io.engine.clientsCount === 1) {
         changeCurrentWord();
         socket.emit("draw", currentWord);
@@ -60,6 +62,7 @@ io.on('connection', (socket) => {
             if (users.length) {
                 const randomNum = getRandomInt(users.length);
                 drawer = users[randomNum];
+
                 changeCurrentWord();
                 drawer.broadcast.emit("new-user-draw", users[randomNum].handshake.auth.name);
                 users[randomNum].emit("draw", currentWord);
@@ -67,6 +70,8 @@ io.on('connection', (socket) => {
             moves = [];
             io.sockets.emit("full-clear");
         }
+        io.sockets.emit("new-message", "Игра", `${socket.handshake.auth.name} покидает игру`);
+        io.sockets.emit("change-online", io.engine.clientsCount);
         console.log('user disconnected');
     });
     socket.on('send-message', (sender, message) => {

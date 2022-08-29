@@ -54,7 +54,7 @@ body {
   width: 100%;
   height: 100%;
   display: grid;
-  grid-template-areas: "A A A" "B B C";
+  grid-template-areas: "A A D" "B B C";
   justify-content: center;
   align-content: center;
   column-gap: 20px;
@@ -64,12 +64,27 @@ body {
   font-size: 2rem;
   margin-bottom: 10px;
 }
+.main_container .online_container {
+  grid-area: D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+.main_container .online_container img {
+  margin-right: 10px;
+}
+.main_container .online_container .online_text {
+  text-align: center;
+}
 .main_container .draw_container {
   width: 600px;
   height: 600px;
   border: 1px solid black;
   overflow: hidden;
   position: relative;
+  grid-area: B;
 }
 .main_container .draw_container canvas {
   width: 100%;
@@ -97,6 +112,7 @@ body {
   border: 1px solid black;
   font-family: Inter, sans-serif;
   position: relative;
+  grid-area: C;
 }
 .main_container .chat_container .all_messages_container {
   height: calc(100% - 50px - 10px);
