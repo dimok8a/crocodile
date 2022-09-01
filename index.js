@@ -145,10 +145,6 @@ io.on('connection', (socket) => {
         "xp": rating.xp,
         "levelName": rating.getLevelName()
     })
-    socket.emit("get-rating", {
-        "xp": socket.handshake.address,
-        "levelName": rating.getLevelName()
-    })
     console.log(socket.handshake.address);
     users.push(socket);
     socket.broadcast.emit("new-message", newPlayerMessage(socket.handshake.auth.name));
