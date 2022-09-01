@@ -139,9 +139,14 @@ io.on('connection', (socket) => {
     if (!usersRating[socket.handshake.address]) {
         usersRating[socket.handshake.address] = new Rating();
     }
+
     let rating = usersRating[socket.handshake.address];
     socket.emit("get-rating", {
         "xp": rating.xp,
+        "levelName": rating.getLevelName()
+    })
+    socket.emit("get-rating", {
+        "xp": socket.handshake.address,
         "levelName": rating.getLevelName()
     })
     console.log(socket.handshake.address);
