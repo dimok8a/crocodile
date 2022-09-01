@@ -17,7 +17,7 @@ let gameStarted = false;
 let drawer = null;
 
 let users = [];
-const russianWords = "Скунс Креветка Бабочка Краб Гусеница Страус Панда Медуза Паук Аллигатор Кит Жираф Рамен Суши Борщ Шпроты Салями Угорь Конфеты Мидии Хинкали Аватар Человек-паук Симпсоны Мадагаскар Хатико Матрица Ералаш стриптизер официант сантехник дворник ежедневник субботник календарь Супермен"
+const russianWords = "Скунс Креветка Бабочка Краб Гусеница Страус Панда Медуза Паук Аллигатор Кит Жираф Рамен Суши Борщ Шпроты Салями Угорь Конфеты Мидии Хинкали Аватар Человек-паук Симпсоны Мадагаскар Хатико Матрица Ералаш стриптизер официант сантехник дворник ежедневник субботник календарь Супермен паркур шоппинг серфинг брейк-данс оригами кроссворд покер водопад неряшливость фляга приключение пирс канарейка шалун невежество пион убыль выделка путник робототехника неразбериха рифмоплёт шовинизм ходатайство шагомер прохвост акушер палеозой уведомление оторва кровоподтёк хамство хутор фальсификация параболоид передвижение киловатт оксид морозоустойчивость хулиганьё навес старшинство напильник возмездие сруб откровенность аминокислота спелеология круиз узкость матерщинник трансплантация творение протеже грильяж полтинник астматик скандалист преимущество митрополит чужестранец резиденция хлопотун категория тяжесть ударник акушерство светотехника растяпа скептицизм изверг физиономия витрина самоуничижение эколог управляющий кадило хорист пиршество резонатор буйство прялка филология купорос ночлег микроскоп эхолот щипчики стружка священнослужитель сплин опус самопроизвольность тлен чужеземец царизм телеобъектив орнитолог погремушка морфий энциклопедист крепостной водопровод цитология куль бездна сыроделие леший трансавангард евангелист улучшение нервотрепка капустник выгораживание бюрократия самозванец надзиратель эшафот усадьба возбудитель канун судоходство вихрь античность рецидивист туберкулёз созвучие признание зразы карабин авансцена разгром инцест гениальность разделение виртуоз подшивка"
 const dbWords = russianWords.split(" ");
 let words = russianWords.split(" ");
 
@@ -28,6 +28,8 @@ function getRandomInt(max) {
 }
 let currentWord = "";
 
+
+const MAIN_SENDER = "Игра"
 function changeCurrentWord() {
     words = words.filter(word => word !== currentWord)
     if (words.length) {
@@ -37,8 +39,6 @@ function changeCurrentWord() {
     }
     chat = [];
 }
-
-const MAIN_SENDER = "Игра"
 
 function newPlayerMessage(namePlayer) {
     messageId += 1;
@@ -90,8 +90,61 @@ function playerMessage(namePlayer, message) {
 let newMessage = null;
 changeCurrentWord();
 
+let usersRating = {
+}
+
+class Rating {
+    constructor() {
+        this.xp = 0;
+        this.level = 1;
+    }
+
+    changeLevel() {
+        if (this.xp >= 0 && this.xp <= 10)
+            this.level = 1;
+        if (this.xp >= 11 && this.xp <= 25)
+            this.level = 2;
+        if (this.xp >= 26 && this.xp <= 50)
+            this.level = 3;
+        if (this.xp >= 51 && this.xp <= 80)
+            this.level = 4;
+        if (this.xp >= 81)
+            this.level = 5;
+    }
+    addPoint() {
+        this.xp += 1;
+        this.changeLevel();
+        return this;
+    }
+
+    getLevelName() {
+        switch (this.level) {
+            case 1:
+                return "Новичок"
+            case 2:
+                return "Любитель"
+            case 3:
+                return "Крутой чел"
+            case 4:
+                return "Очень крутой чел"
+            case 5:
+                return "БОГ КРОКОДИЛА"
+        }
+    }
+
+}
+
 io.on('connection', (socket) => {
     console.log('a user connected');
+    if (!usersRating[socket.handshake.address]) {
+        usersRating[socket.handshake.address] = new Rating();
+    }
+    let rating = usersRating[socket.handshake.address];
+    socket.emit("get-rating", {
+        "xp": rating.xp,
+        "levelName": rating.getLevelName()
+    })
+    console.log(socket.handshake.address);
     users.push(socket);
     socket.broadcast.emit("new-message", newPlayerMessage(socket.handshake.auth.name));
     io.sockets.emit("change-online", io.engine.clientsCount);
@@ -143,6 +196,11 @@ io.on('connection', (socket) => {
             if (arrMessage[i].toUpperCase() === currentWord.toUpperCase()) {
                 io.sockets.emit("new-message", playerGuessedMessage(sender, currentWord))
                 io.sockets.emit("dont-draw");
+                rating = usersRating[socket.handshake.address].addPoint();
+                socket.emit("get-rating", {
+                    "xp": rating.xp,
+                    "levelName": rating.getLevelName()
+                })
                 changeCurrentWord();
                 if (moves.length)
                     io.sockets.emit("get-replay", moves);

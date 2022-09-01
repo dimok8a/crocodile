@@ -66,6 +66,10 @@ class Game {
                 }
             }
         })
+        this.socket.on("get-rating", ({xp, levelName}) => {
+            document.querySelector('.xp_container').innerHTML = `Ваши очки  ${xp} `;
+            document.querySelector('.level_name_container').innerHTML = `Вы <b> ${levelName} </b>`;
+        })
     }
 
     printMove(move) {
